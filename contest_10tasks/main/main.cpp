@@ -1,32 +1,151 @@
+//{=================================================================================
+//!         @file    main.cpp
+//!         @date    2014-10-2 2:06
+//!         @author  Yashukhin Artem
+//!
+//!         10 tasks from acm.mipt.ru
+//!
+//}=================================================================================
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
 #include <ctype.h>
 
-int easy_num(int numbers);
-void taskA_var1();
+enum system_calling{ERROR, OK};
 
-void taskB_var1();
+//{=================================================================================
+//! is_prime_number - check the number of the simplicity
+//! @param numbers  - number for checking
+//! @return 1 if number is prime, else return 0
+//! @par          Examble:
+//! @code
+//!     is_prime_number(7);
+//!     //return 1;
+//!
+//!     is_prime_number(12);
+//!     //return 0;
+//!
+//! @endcode
+//!
+//}=================================================================================
 
-int weigh(int mg);
-void taskC_var1();
+bool is_prime_number(int numbers);
 
-void taskA_var2();
+//{=================================================================================
+//! print_array - print array on screen
+//! @param array  - array with numbers
+//! @param size   - size of array
+//! @warning  array must be int type
+//}=================================================================================
 
-void taskB_var2();
+int search_Prime(bool* isPrime ,int quantity_numbers, int nth_number);
 
-void taskC_var2();
+//{=================================================================================
+//! taskC_var2() - Return nth easy number
+//}=================================================================================
 
-int nod(int a, int b);
-void taskA_var3();
+void print_array(int* array, int size);
 
-void taskB_var3();
+//{=================================================================================
+//! scan_array - scan array from keyboard
+//! @param array  - array with numbers
+//! @param size   - size of array
+//! @warning  array must be int type
+//}=================================================================================
 
-int raz(int N, int i);
-void taskA_var7();
+system_calling scan_array(int *array, int size);
 
-void taskB_var7();
+//{=================================================================================
+//! taskA_var1  -  write program, which get prime numbers from a list of numbers
+//}=================================================================================
+
+system_calling taskA_var1();
+
+//{=================================================================================
+//! taskB_var1  -  write program, which check number on square divider
+//}=================================================================================
+
+system_calling taskB_var1();
+
+//{=================================================================================
+//! canWeight - check, can we weigh the item using weights at 1, 4, 4^2, ... cu
+//! @return 1 if we can
+//! @return 0 if we cann't
+//}=================================================================================
+
+bool canWeigh(int mg);
+
+//{=================================================================================
+//! taskC_var1 - print result canWeight
+//! @see  canWeight
+//}=================================================================================
+
+system_calling taskC_var1();
+
+//{=================================================================================
+//! transpose - math transpose matrix
+//! @param transpose_matrix - the inital matrix
+//! @param size_arr - size of matrix
+//! @param[out] transpose_matrix - the transpose matrix
+//}=================================================================================
+
+void transpose( int* transpose_matrix, int size_arr);
+
+//{=================================================================================
+//! scan matrix and print her transpose
+//}=================================================================================
+
+system_calling taskA_var2();
+
+//{=================================================================================
+//! taskB_var2 - program for the normalization of the root (sqrt(a) -> b * sqrt(c)
+//}=================================================================================
+
+system_calling taskB_var2();
+
+//{=================================================================================
+//! taskC_var2() - Find nth prime number
+//}=================================================================================
+
+system_calling taskC_var2();
+
+//{=================================================================================
+//! Greatest_common_divisor - search Greatest_common_divisor for 2 numbers
+//}=================================================================================
+
+int Greatest_common_divisor(int a, int b);
+
+//{=================================================================================
+//! taskA_var3 - search Greatest_common_divisor for 3 numbers
+//}=================================================================================
+
+system_calling taskA_var3();
+
+//{=================================================================================
+//! taskB_var4 - delete ' ' , changed numbers to '#', decreases register
+//}=================================================================================
+
+void taskB_var4();
+
+//{=================================================================================
+//! decomposition_by_dividing_on_two - representation of a number as a sum of powers of two
+//}=================================================================================
+
+int decomposition_by_dividing_on_two(int number, int degree);
+
+//{================================================================================
+//! taskA_var7 - scan number for decomposition_by_dividing_on_two and print result
+//! @see decomposition_by_dividing_on_two
+//}================================================================================
+
+system_calling taskA_var7();
+
+//{================================================================================
+//! taskB_var7 - find the most remote points
+//}================================================================================
+system_calling taskB_var7();
 
 int main()
 {
@@ -37,40 +156,57 @@ int main()
     //taskB_var2();
     //taskC_var2();
     //taskA_var3();
-    //taskB_var3();
+    //taskB_var4();
     //taskA_var7();
-    taskB_var7();
+    //taskB_var7();
 }
 
 
-void taskA_var1()
+system_calling taskA_var1()
 {
-    int n, numbers, size_arr = 0;
-    int *easyn = NULL;
-    easyn = (int*) calloc(size_arr, sizeof(*easyn));
-    scanf("%d", &n);
+    int size_array = 0;
+    int scaning_number = 0;
+    int quantity_numbers = 0;
 
-    for (int i = 0; i < n; i++)
+    int *prime_numbers = NULL;
+    assert(size_array >= 0);
+    prime_numbers = (int*) calloc(size_array, sizeof(*prime_numbers));
+    scanf("%d", &quantity_numbers);
+
+    for (int i = 0; i < quantity_numbers; i++)
     {
-        scanf("%d", &numbers);
-        if (easy_num (numbers))
+        if( scanf("%d", &scaning_number) == 0)
         {
-            size_arr++;
-            easyn = (int *) realloc((void*) easyn, size_arr);
-            easyn[size_arr - 1] = numbers;
+            printf("Error input");
+            return ERROR;
+        }
+        if (is_prime_number(scaning_number))
+        {
+            size_array++;
+            assert(   (0 <  size_array * sizeof(*prime_numbers) ) \
+                    && (size_array * sizeof(*prime_numbers) <= quantity_numbers * sizeof(*prime_numbers) ) );
+            prime_numbers = (int *) realloc((void*) prime_numbers, size_array * sizeof(*prime_numbers));
+            prime_numbers[size_array - 1] = scaning_number;
         }
     }
-    for (int i = 0; i< size_arr; i++)
-    {
-        assert(i>=0 && i< size_arr);
-        printf("%d ", easyn[i]);
-    }
-
-    free(easyn);
+    print_array(prime_numbers, size_array);
+    free(prime_numbers);
+    return OK;
 }
-int easy_num(int numbers)
+
+
+void print_array(int* array, int size) {
+    for (int i = 0; i< size; i++)
+    {
+        assert(i>=0 && i< size);
+        printf("%d ", array[i]);
+    }
+}
+
+bool is_prime_number(int numbers)
 {
-    for (int i = 1; i <=(int) sqrt(numbers) + 1; i++)
+    double sqrt_number = sqrt(numbers);
+    for (int i = 1; i <= sqrt_number; i++)
     {
 
         if(numbers % i == 0 && i != 1)
@@ -83,27 +219,29 @@ int easy_num(int numbers)
     return 0;
 }
 
-void taskB_var1()
-{
-    int number = 0;
-    scanf("%d", &number);
 
-    for (int i = 2; (i * i) <= ((int) sqrt(number) + 1); i++)
+system_calling taskB_var1() {
+    int number = 0;
+    if(scanf("%d", &number) != 1)
+    {
+        printf("Error input");
+        return ERROR;
+    }
+
+    for (int i = 2; (i * i) <= number; i++)
     {
         if (number % (i*i) == 0)
         {
             printf("YES");
-            break;
-        }
-        else
-        {
-            printf("NO");
-            break;
+            return OK;
         }
     }
+    printf("NO");
+    return OK;
 }
 
-int weigh(int mg)
+
+bool canWeigh(int mg)
 {
     if(mg     == 1)
     {
@@ -118,116 +256,158 @@ int weigh(int mg)
     }
     else
     {
-        weigh( (int) (mg / 4 + (mg % 4 + 1) / 4) );
+        canWeigh((int) (mg / 4 + (mg % 4 + 1) / 4));
     }
 }
-void taskC_var1()
+system_calling taskC_var1()
 {
 
     int mg = 0;
-    scanf("%d", &mg);
-    if(weigh(mg))
+    if(scanf("%d", &mg) != 1)
     {
-        printf("YES");
-    }else
-    {
-        printf("NO");
+        printf("Error input");
+        return ERROR;
     }
-
+    printf (canWeigh (mg)? "YES" : "NO");
+    return OK;
 }
 
-void taskA_var2()
+system_calling scan_array(int *array, int size)
 {
-    int* transpon = NULL;
-    int n = 0;
-    int tmp = 0;
-
-    scanf("%d", &n);
-
-    int size_arr = n*n;
-    transpon = (int*) calloc(size_arr, sizeof(*transpon));
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
+    for (int i = 0; i < size; i++)
         {
-            scanf("%d", &transpon[n * i + j]);
+            if(scanf("%d", &array[i]) != 1)
+            {
+                printf("Input_error");
+                return ERROR;
+            }
         }
-    }
-    printf("\n");
-    for (int i = 0; i < n; i++)
+    return OK;
+}
+
+
+void transpose( int* transpose_matrix, int size_arr) {
+    int buffer_for_swap = 0;
+    int matrix_per_size = (int) sqrt(size_arr);
+    for (int i = 0; i < matrix_per_size; i++)
     {
         for (int j = 0; j < i; j++)
         {
-            assert (n * i + j >= 0 && n * i + j < size_arr);
-            tmp = transpon[n * i + j];
+            assert (matrix_per_size * i + j >= 0 && matrix_per_size * i + j < size_arr);
+            buffer_for_swap = transpose_matrix[matrix_per_size * i + j];
 
-            assert (n * j + i >= 0 && n * j + i < size_arr);
-            transpon[n * i + j] = transpon [n * j + i];
+            assert (matrix_per_size * j + i >= 0 && matrix_per_size * j + i < size_arr);
+            transpose_matrix[matrix_per_size * i + j] = transpose_matrix[matrix_per_size * j + i];
 
-            transpon[n * j + i] = tmp;
+            transpose_matrix[matrix_per_size * j + i] = buffer_for_swap;
         }
     }
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            assert (n * i + j >= 0 && n * i + j < size_arr);
-
-            printf("%d ", transpon[n * i + j]);
-        }
-        printf("\n");
-    }
-
-    free(transpon);
 }
 
-void taskB_var2()
+system_calling taskA_var2()
 {
-    int number, sqrt_int, sqrt_float = 0;
-    scanf("%d", &number);
-    for (int i = 1; (i * i) <= number; i++)
-    {
-        if (number % (i*i) == 0)
-        {
-            sqrt_int = i;
-            sqrt_float = number /i/i;
-        }
-    }
-    printf("%d %d",sqrt_float, sqrt_int);
+    int matrix_per_size = 0;
 
+    if(scanf("%d", &matrix_per_size) != 1)
+    {
+        printf("Error input");
+        return ERROR;
+    }
+
+    int size_arr = matrix_per_size * matrix_per_size;
+
+    assert(size_arr > 0);
+    int* transpose_matrix = (int*) calloc(size_arr, sizeof(*transpose_matrix));
+
+    if( scan_array(transpose_matrix, size_arr) == ERROR)
+    {
+        return ERROR;
+    }
+
+    printf("\n");
+
+    transpose(transpose_matrix, size_arr);
+
+    print_array (transpose_matrix, size_arr);
+
+    free(transpose_matrix);
+
+    return OK;
 }
 
-void taskC_var2()
+system_calling taskB_var2()
 {
-    int N = 100500000;
-    bool* isPrime = (bool*) calloc(N, sizeof(*isPrime));
+    int number_under_radical = 0;
+    int initial_number_under_radical = 0;
+    int number_outside_radical = 0;
+    if(scanf("%d", &initial_number_under_radical) != 1)
+    {
+        printf("Input error");
+        return ERROR;
+    }
+
+    for (int i = 1; (i * i) <= initial_number_under_radical; i++)
+    {
+        if (initial_number_under_radical % (i*i) == 0)
+        {
+            number_outside_radical = i;
+            number_under_radical = initial_number_under_radical /i/i;
+        }
+    }
+    printf("%d %d", number_under_radical, number_outside_radical);
+
+    return OK;
+}
+
+int search_Prime(bool* isPrime ,int quantity_numbers, int nth_number) {
+    for (int i = 2; i*i < quantity_numbers; i++){
+        assert(i < quantity_numbers);
+        if (!isPrime[i]){
+            nth_number--;
+            if(nth_number == 0)
+            {
+                return i;
+            }
+            for (int j = i * i; j < quantity_numbers; j += i){
+                assert(j < quantity_numbers);
+                isPrime[j] = true;
+            }
+        }
+    }
+}
+
+system_calling taskC_var2()
+{
+    int quantity_numbers = 100500000;
+
+    assert (quantity_numbers > 2);
+    bool* isPrime = (bool*) calloc(quantity_numbers, sizeof(*isPrime));
     isPrime[1] = true;
 
-    int numbers = 0;
-    scanf("%d", &numbers);
-for (int i = 2; i*i < N; i++){
-    assert(i < N);
-   if (!isPrime[i]){
-        numbers--;
-        if(numbers == 0)
-        {
-            printf("%d", i);
-        }
-      for (int j = i * i; j < N; j += i){
-        assert(j < N);
-         isPrime[j] = true;
-      }
+    int nth_number = 0;
+    if(scanf("%d", &nth_number) != 1)
+    {
+        printf("Input error");
+        return ERROR;
     }
-}
+
+    printf("%d", search_Prime(isPrime, quantity_numbers, nth_number) );
+    return OK;
 }
 
-void taskA_var3()
+system_calling taskA_var3()
 {
     int a, b, c = 0;
-    scanf("%d %d %d", &a, &b, &c);
-    printf("%d", a*b*c/nod(a*b/nod(a, b),c)/nod(a,b));
+    if(scanf("%d %d %d", &a, &b, &c) != 3)
+    {
+        printf("Input ERROR");
+        return ERROR;
+    }
+    printf("%d", a*b*c/ Greatest_common_divisor(a * b / Greatest_common_divisor(a, b), c)/ Greatest_common_divisor(a, b));
+    return OK;
 }
-int nod(int a, int b)
+
+int Greatest_common_divisor(int a, int b)
 {
     while (a != 0 && b != 0){
         if (a > b){
@@ -240,81 +420,96 @@ int nod(int a, int b)
 return a+b;
 }
 
-void taskB_var3()
+void taskB_var4()
 {
-    char c = 0;
-    int i = 0;
-    bool flag = false;
-    for(i = 1; c != '\n'; i++)
+    char symbol = 0;
+    bool flag_correct_symbol = false;
+    for(int i = 1; symbol != '\n'; i++)
     {
-        scanf("%c", &c);
-        if(c == ' ')
+        scanf("%c", &symbol);
+        if(symbol == ' ')
         {
-            flag = true;
-        }else if(c != ' ' && flag == true)
+            flag_correct_symbol = true;
+        }else if(symbol != ' ' && flag_correct_symbol == true)
         {
             printf(" ");
-            flag = false;
+            flag_correct_symbol = false;
         }
-        c = tolower(c);
-        if(c <= '9' && c >= '0')
+        symbol = tolower(symbol);
+        if(symbol <= '9' && symbol >= '0')
         {
-            c = '#';
+            symbol = '#';
         }
-        if(c != ' ')
+        if(symbol != ' ')
         {
-            printf("%c", c);
+            printf("%c", symbol);
         }
     }
 }
 
-int raz(int N, int i)
+int decomposition_by_dividing_on_two(int number, int degree)
 {
-    if(N == 1)
+    if(number == 1)
     {
-        printf("%lg", pow(2, i) );
+        printf("%lg", pow(2, degree) );
         return 0;
     }
-    if(N % 2 == 1)
+    if(number % 2 == 1)
     {
-        printf("%lg ", pow(2, i) );
+        printf("%lg ", pow(2, degree) );
     }
-    i++;
-    raz(N/2, i);
+    degree++;
+    decomposition_by_dividing_on_two(number / 2, degree);
 
 
 }
-void taskA_var7()
-{
-    int N = 0;
-    scanf("%d", &N);
-    raz(N, 0);
 
+system_calling taskA_var7()
+{
+    int number = 0;
+    if(scanf("%d", &number) != 1)
+    {
+        printf("Input error");
+        return ERROR;
+    }
+    decomposition_by_dividing_on_two(number, 0);
+    return OK;
 }
 
-void taskB_var7()
-{
-    int N = 0;
-    scanf("%d", &N);
-    double* x     = (double*) calloc (N, sizeof(*x));
-    double* y     = (double*) calloc (N, sizeof(*y));
+system_calling taskB_var7() {
+    int quantity_points = 0;
+    if(scanf("%d", &quantity_points)  != 1)
+    {
+        printf("Input ERROR");
+        return ERROR;
+    }
+    assert(quantity_points > 0);
+    double* x     = (double*) calloc (quantity_points, sizeof(*x));
+    double* y     = (double*) calloc (quantity_points, sizeof(*y));
+
     double maxim = -1;
-    int imax, jmax = -1;
-    for (int i = 0; i < N; i++)
+    int imax = -1;
+    int jmax = -1;
+    for (int i = 0; i < quantity_points; i++)
     {
-        scanf("%lg %lg", &x[i], &y[i]);
+        if(scanf("%lg %lg", &x[i], &y[i]))
+        {
+            printf("Input ERROR");
+            return ERROR;
+        }
     }
-    for (int i = N - 1; i >= 0; i--)
+    for (int i = quantity_points - 1; i >= 0; i--)
     {
-       for (int j = 0; j < i; j++)
-       {
+        for (int j = 0; j < i; j++)
+        {
             if(maxim < ((x[i] - x[j])*(x[i] - x[j]) + (y[i] - y[j])*(y[i] - y[j])) )
             {
                 maxim = (x[i] - x[j])*(x[i] - x[j]) + (y[i] - y[j])*(y[i] - y[j]);
                 imax = i;
                 jmax = j;
             }
-       }
+        }
     }
     printf("%d %d %lg",imax+1, jmax+1, sqrt(maxim));
+    return OK;
 }
