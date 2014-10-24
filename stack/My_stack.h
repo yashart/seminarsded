@@ -18,12 +18,18 @@
 //! change typedef to make stack with other types
 //! @warning ! if you change type, stackDump can not work.
 typedef int stackData;
+
 //! special type for diagnosis program
+const int INITIAL_STACK_SIZE = 10;
+//!
 enum errors
 {
-    OK = (int) 'KO',
-    NULLPOINTER = (int) 'RTP0',
-    ENDOFARRAY = (int) 'ADNE',
+    OK             = (int) 'KO',
+    NULLPOINTER    = (int) 'RTP0',
+    ENDOFARRAY     = (int) 'ADNE',
+    STACKFULL = (int) 'LLUF',
+    STACKNULLSIZE  = (int) 'ZSS0',
+    ENDOFFILE      = (int) 'LIFE'
 
 };
 //! definition of stack. Stack have data, position of last element and maximum of quantity elements. Stack resize, if it is necessary.
@@ -36,11 +42,11 @@ struct stack
 //! check stack on nul pointer, overflow and output abroad
 int stackOk(stack *stk);
 //! print all information about stack
-void stackDump(stack *stk);
+void stackDump(stack const *stk);
 //! set stack in first condition, like as constrictor in c++
 errors stackConstructor(stack *stk);
 //! put an element to the top of the stack
-errors stackPush(stack *stk, stackData value);
+errors stackPush(stack *stk, stackData const value);
 //! get element from the top of the stack and delete it
 stackData stackPop(stack *stk);
 //! convert stack in non working condition
