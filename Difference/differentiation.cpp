@@ -1,8 +1,6 @@
 #include "differentiation.h"
 
-char* str;
-char* str_pos;
-const int MAX_STR_NUMBER = 50;
+lexem* str_pos;
 node* func_node;
 
 node* node_constructor()
@@ -37,163 +35,297 @@ void node_destructor(node *new_node)
     free(new_node);
 }
 
-node *get_G0()
+node *get_G0(lexem *str)
 {
+    /*
     func_node = node_constructor();
     assert(node_ok(func_node));
 
-    str = (char*) calloc(MAX_STR_NUMBER, sizeof(*str));
     if(!str)
     {
         errno = EFAULT;
         perror("NULL pointer");
     }
-    if(!scanf("%s", str))
-    {
-        errno = SEEK_DATA;
-        perror("bad scanf");
-    }
-
     str_pos = str;
 
     func_node->left = get_sum();
     assert(node_ok(func_node->left));
 
     free(str);
-    return func_node;
+    */
+    str_pos = str;
+    return get_sum();
 }
 
 node* get_sum()
 {
-    node* sum_node = NULL;
-    sum_node = node_constructor();
-    assert(node_ok(sum_node));
-    sum_node->left = get_mul();
-    switch(*str_pos)
+    node* left = get_mul();
+    if((str_pos->type == OPERATOR)&&(str_pos->value == '+')||(str_pos->value == '-'))
     {
-        case '+':
-            str_pos++;
-            sum_node->right = get_sum();
-            sum_node->math_operator = '+';
-            break;
-        case '-':
-            str_pos++;
-            sum_node->right = get_sum();
-            sum_node->math_operator = '-';
-            break;
-        default:
-            sum_node->math_operator = '\0';
-            break;
+        node* sum_node = NULL;
+        sum_node = node_constructor();
+        assert(node_ok(sum_node));
+
+        sum_node->type  = OPERATOR;
+        sum_node->data  = str_pos->value;
+        sum_node->prior = P_SUM;
+        sum_node->pos   = INFIX;
+        sum_node->left  = left;
+        str_pos++;
+        sum_node->right = get_sum();
+
+        assert(node_ok(sum_node));
+        return sum_node;
     }
-    assert(node_ok(sum_node));
-    return sum_node;
+    return left;
 }
 
 node* get_mul()
 {
-    node* mul_node = NULL;
-    mul_node = node_constructor();
-    assert(node_ok(mul_node));
-    mul_node->left = get_elementar_func();
-    switch(*str_pos)
+    node* left = get_elementar_func();
+    if((str_pos->type == OPERATOR)&&(str_pos->value == '*')||(str_pos->value == '/'))
     {
-        case '*':
-            str_pos++;
-            mul_node->right = get_mul();
-            mul_node->math_operator = '*';
-            break;
-        case '/':
-            str_pos++;
-            mul_node->right = get_mul();
-            mul_node->math_operator = '/';
-            break;
-        default:
-            mul_node->math_operator = '\0';
-            break;
+        node* mul_node = NULL;
+        mul_node = node_constructor();
+        assert(node_ok(mul_node));
+
+        mul_node->type  = OPERATOR;
+        mul_node->data  = str_pos->value;
+        mul_node->prior = P_MULT;
+        mul_node->pos   = INFIX;
+        mul_node->left  = left;
+        str_pos++;
+        mul_node->right = get_mul();
+        assert(node_ok(mul_node));
+        return mul_node;
     }
-    assert(node_ok(mul_node));
-    return mul_node;
+    return left;
 }
 
 node* get_elementar_func()
 {
-    node* elem_node = NULL;
-    elem_node = node_constructor();
-    assert(node_ok(elem_node));
-    switch(*str_pos)
+    if((str_pos->type == OPERATOR)&&((str_pos->value == 's')||(str_pos->value == 'c')))
     {
-        case 'l':
-            str_pos++;
-            elem_node->left = get_elementar_func();
-            elem_node->math_operator = 'l';
-            break;
-        default:
-            elem_node->math_operator = '\0';
-            elem_node->left = get_bracket();
-            break;
+        node* elem_node = NULL;
+        elem_node = node_constructor();
+        assert(node_ok(elem_node));
+
+        elem_node->type  = OPERATOR;
+        elem_node->data  = str_pos->value;
+        elem_node->prior = P_SINUS;
+        elem_node->pos   = PREFIX;
+        str_pos++;
+        elem_node->left  = get_elementar_func();
+        assert(node_ok(elem_node));
+        return elem_node;
     }
-    return elem_node;
+    return get_bracket();
 }
 
 node* get_bracket()
 {
-    node* brack_node = NULL;
-    brack_node = node_constructor();
-    assert(node_ok(brack_node));
-    switch(*str_pos)
+    node* bracket = NULL;
+    if((str_pos->type == OPERATOR)&&(str_pos->value == '('))
     {
-        case '(':
-            str_pos++;
-            brack_node->left = get_sum();
-            brack_node->math_operator = ')';
-            if(*str_pos != ')')
-            {
-                errno = EINVAL;
-                perror("Bad bracket");
-            }
-            str_pos++;
-            break;
-        default:
-        {
-            brack_node->left = get_data();
-            brack_node->math_operator = '\0';
-            break;
-        }
+        str_pos++;
+        bracket = get_sum();
+        str_pos++;
+    }else
+    {
+        bracket = get_data();
     }
-    return brack_node;
+   return bracket;
 }
 
 node* get_data()
 {
-    node* data_node = NULL;
-    data_node = node_constructor();
-    assert(node_ok(data_node));
-    while(((0 <= (*str_pos - '0'))&&((*str_pos - '0') <= 9))||(*str_pos == 'x'))
+    if((str_pos->type == VARIABLE)||(str_pos->type == NUMBER)||(str_pos->type == END_LEXEM))
     {
-        if(*str_pos == 'x')
-        {
-            str_pos++;
-            data_node->data.x_degree += 1;
-        }else
-        {
-            data_node->data.number = 10*data_node->data.number + *str_pos - '0';
-            str_pos++;
-        }
+        node *data_node = NULL;
+        data_node = node_constructor();
+        assert(node_ok(data_node));
+
+        data_node->type  = str_pos->type;
+        data_node->data  = str_pos->value;
+        data_node->prior = P_NUM;
+        data_node->pos  = INFIX;
+        str_pos++;
+
+        assert(node_ok(data_node));
+        return data_node;
     }
-    return data_node;
+    perror("PLAK PLAK");
+    return NULL;
 }
 
 void node_dump(node *new_node)
 {
-    if(new_node->math_operator == ')')
-        printf("(");
-    if(new_node->left != NULL)
-        node_dump(new_node->left);
+    if(new_node->pos == INFIX)
+    {
+        if(new_node->left != NULL)
+        {
+            if((new_node->prior > new_node->left->prior)&&(new_node->type == new_node->left->type))
+                printf("(");
+            node_dump(new_node->left);
+            if((new_node->prior > new_node->left->prior)&&(new_node->type == new_node->left->type))
+                printf(")");
+        }
 
-    if(new_node->data.number != 0)
-        printf("%lgx^%lg", new_node->data.number, new_node->data.x_degree);
-    printf("%c", new_node->math_operator);
+        if(new_node->type == OPERATOR)
+            printf("%c", new_node->data);
+        if(new_node->type == NUMBER)
+            printf("%d", new_node->data);
+        if(new_node->type == VARIABLE)
+            printf("%c", new_node->data);
 
-    if(new_node->right != NULL)
-        node_dump(new_node->right);
+        if(new_node->right != NULL)
+        {
+            if((new_node->prior > new_node->right->prior)&&(new_node->type == new_node->right->type))
+                printf("(");
+            node_dump(new_node->right);
+            if((new_node->prior > new_node->right->prior)&&(new_node->type == new_node->right->type))
+                printf(")");
+        }
+    }
+    if(new_node->pos == PREFIX)
+    {
+        if(new_node->type == OPERATOR)
+            printf("%c", new_node->data);
+        if(new_node->type == NUMBER)
+            printf("%d", new_node->data);
+        if(new_node->type == VARIABLE)
+            printf("%c", new_node->data);
+        if(new_node->left != NULL)
+        {
+            if(new_node->left->pos != PREFIX)
+                printf("(");
+            node_dump(new_node->left);
+            if(new_node->left->pos != PREFIX)
+                printf(")");
+        }
+        if(new_node->right != NULL)
+        {
+            node_dump(new_node->right);
+        }
+    }
+    if(new_node->pos == POSTFIX)
+    {
+        if(new_node->left != NULL)
+        {
+            node_dump(new_node->left);
+        }
+        if(new_node->right != NULL)
+        {
+            node_dump(new_node->right);
+        }
+        if(new_node->type == OPERATOR)
+            printf("%c", new_node->data);
+        if(new_node->type == NUMBER)
+            printf("%d", new_node->data);
+        if(new_node->type == VARIABLE)
+            printf("%c", new_node->data);
+    }
+}
+
+
+
+node* difference(node *tree)
+{
+    node* new_node = NULL;
+    node* func_node = NULL;
+    switch(tree->prior)
+    {
+        case P_NUM:
+            if(tree->type == VARIABLE)
+            {
+                new_node = node_constructor();
+                assert(node_ok(new_node));
+
+                new_node->type  = NUMBER;
+                new_node->data  = 1;
+                new_node->prior = P_NUM;
+                new_node->pos   = INFIX;
+                break;
+            }
+            if(tree->type == NUMBER)
+            {
+                new_node = node_constructor();
+                assert(node_ok(new_node));
+
+                new_node->type = NUMBER;
+                new_node->data = 0;
+                new_node->prior = P_NUM;
+                new_node->pos   = INFIX;
+                break;
+            }
+        case P_SINUS:
+            if(tree->data == 's')
+            {
+                func_node = copy_tree(tree);
+                func_node->data = 'c';
+                func_node->pos   = PREFIX;
+                new_node = node_mul(func_node, difference(tree->left));
+                break;
+            }
+            new_node = node_mul(copy_tree(tree->left), difference(tree->left));
+            break;
+        case P_MULT:
+            new_node = node_sum(node_mul(copy_tree(tree->left), difference(tree->right)),\
+                                node_mul(difference(tree->left), copy_tree(tree->right)));
+            break;
+        case P_SUM:
+            new_node = node_sum(difference(tree->left), difference(tree->right));
+            break;
+        default:
+            perror("Plack Plak");
+    }
+    return new_node;
+}
+
+node* copy_tree(node *tree)
+{
+    node* new_node = node_constructor();
+    assert(node_ok(new_node));
+
+    new_node->type  = tree->type;
+    new_node->data  = tree->data;
+    new_node->prior = tree->prior;
+    new_node->pos   = tree->pos;
+
+    if(tree->left != NULL)
+        new_node->left  = copy_tree(tree->left);
+    if(tree->right != NULL)
+        new_node->right = copy_tree(tree->right);
+
+    return new_node;
+}
+
+node* node_mul(node* left, node* right)
+{
+    node* new_node = node_constructor();
+    assert(node_ok(new_node));
+
+    new_node->type  = OPERATOR;
+    new_node->data  = '*';
+    new_node->prior = P_MULT;
+    new_node->pos   = INFIX;
+    new_node->left  = left;
+    new_node->right = right;
+
+    return new_node;
+}
+
+node* node_sum(node* left, node* right)
+{
+    node* new_node = node_constructor();
+    assert(node_ok(new_node));
+
+    new_node->type  = OPERATOR;
+    new_node->data  = '+';
+    new_node->prior = P_SUM;
+    new_node->pos   = INFIX;
+    new_node->left  = left;
+    new_node->right = right;
+
+    return new_node;
 }
