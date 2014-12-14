@@ -6,7 +6,8 @@ enum node_type
     END_LEXEM,
     NUMBER,
     VARIABLE,
-    OPERATOR
+    OPERATOR,
+    SIMULATOR_DIFFERENCE
 };
 
 enum operator_pos

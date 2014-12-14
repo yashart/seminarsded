@@ -3,10 +3,12 @@
 lexem* str_pos;
 node* func_node;
 
+
 node* node_constructor()
 {
     node* new_node = (node*) calloc(1, sizeof(*new_node));
     assert(node_ok(new_node));
+    new_node->is_simular = false;
     return new_node;
 }
 
@@ -54,7 +56,8 @@ node *get_G0(lexem *str)
     free(str);
     */
     str_pos = str;
-    return get_sum();
+    func_node = get_sum();
+    return func_node;
 }
 
 node* get_sum()
@@ -169,6 +172,7 @@ void node_dump(node *new_node)
             node_dump(new_node->left);
             if((new_node->prior > new_node->left->prior)&&(new_node->type == new_node->left->type))
                 printf(")");
+
         }
 
         if(new_node->type == OPERATOR)
@@ -227,12 +231,137 @@ void node_dump(node *new_node)
     }
 }
 
+void node_dump_formul(node *new_node)
+{
+    FILE** file = &TEXT_LATEXT;
+    if(new_node->is_simular)
+        fprintf(*file ,"(");
+    if(new_node->pos == INFIX)
+    {
+        if(new_node->data == '/')
+        {
+            fprintf(*file, "\\frac");
+            if(new_node->left != NULL)
+            {
+                fprintf(*file, "{");
+                if(new_node->left->pos != PREFIX)
+                    fprintf(*file, "(");
+                node_dump_formul(new_node->left);
+                if(new_node->left->pos != PREFIX)
+                    fprintf(*file, ")");
+                fprintf(*file, "}");
+            }
+            if(new_node->right != NULL)
+            {
+                fprintf(*file, "{");
+                if(new_node->right->pos != PREFIX)
+                    fprintf(*file, "(");
+                node_dump_formul(new_node->right);
+                if(new_node->right->pos != PREFIX)
+                    fprintf(*file, ")");
+                fprintf(*file, "}");
+            }
+        }
+        else {
+            if (new_node->left != NULL)
+            {
+                if ((new_node->prior > new_node->left->prior) && (new_node->type == new_node->left->type))
+                    fprintf(*file, "(");
+                node_dump_formul(new_node->left);
+                if ((new_node->prior > new_node->left->prior) && (new_node->type == new_node->left->type))
+                    fprintf(*file, ")");
+            }
 
+            if((new_node->data == '*')&&(new_node->type == OPERATOR))
+                fprintf(*file, "\\cdot{");
+            else if (new_node->type == OPERATOR)
+                fprintf(*file, "%c", new_node->data);
+            if (new_node->type == NUMBER)
+                fprintf(*file, "%d", new_node->data);
+            if (new_node->type == VARIABLE)
+                fprintf(*file, "%c", new_node->data);
+
+            if (new_node->right != NULL)
+            {
+                if ((new_node->prior > new_node->right->prior) && (new_node->type == new_node->right->type))
+                    fprintf(*file, "(");
+                node_dump_formul(new_node->right);
+                if ((new_node->prior > new_node->right->prior) && (new_node->type == new_node->right->type))
+                    fprintf(*file, ")");
+            }
+            if((new_node->data == '*')&&(new_node->type == OPERATOR))
+                fprintf(*file, "}");
+        }
+    }
+    if(new_node->pos == PREFIX)
+    {
+        if(new_node->type == OPERATOR)
+        {
+            if (new_node->data == 'c')
+                fprintf(*file, "cos");
+            if (new_node->data == 's')
+                fprintf(*file, "sin");
+        }
+
+        if(new_node->type == NUMBER)
+            fprintf(*file, "%d", new_node->data);
+        if(new_node->type == VARIABLE)
+            fprintf(*file, "%c", new_node->data);
+        if(new_node->left != NULL)
+        {
+            if(new_node->left->pos != PREFIX)
+                fprintf(*file, "(");
+            node_dump_formul(new_node->left);
+            if(new_node->left->pos != PREFIX)
+                fprintf(*file, ")");
+        }
+        if(new_node->right != NULL)
+        {
+            node_dump_formul(new_node->right);
+        }
+    }
+    if(new_node->pos == POSTFIX)
+    {
+        if(new_node->left != NULL)
+        {
+            node_dump_formul(new_node->left);
+        }
+        if(new_node->right != NULL)
+        {
+            node_dump_formul(new_node->right);
+        }
+        if(new_node->type == OPERATOR)
+            fprintf(*file, "%c", new_node->data);
+        if(new_node->type == NUMBER)
+            fprintf(*file, "%d", new_node->data);
+        if(new_node->type == VARIABLE)
+            fprintf(*file, "%c", new_node->data);
+    }
+    if(new_node->is_simular)
+        fprintf(*file ,")'");
+}
+
+void node_dump_tex(node *old_node, node *new_node)
+{
+    char* phrases = dump_phrases(old_node->data);
+    fprintf(TEXT_LATEXT ,"%s:\\\\\n", phrases);
+    free(phrases);
+    fprintf(TEXT_LATEXT, "$");
+    node_dump_formul(old_node);
+    fprintf(TEXT_LATEXT, "$");
+    fprintf(TEXT_LATEXT, " -> ");
+    fprintf(TEXT_LATEXT, "$");
+    node_dump_formul(new_node);
+    fprintf(TEXT_LATEXT, "$");
+    fprintf(TEXT_LATEXT ,"\\\\\n");
+}
 
 node* difference(node *tree)
 {
     node* new_node = NULL;
     node* func_node = NULL;
+    node* simul_node = NULL;
+
     switch(tree->prior)
     {
         case P_NUM:
@@ -264,21 +393,69 @@ node* difference(node *tree)
                 func_node = copy_tree(tree);
                 func_node->data = 'c';
                 func_node->pos   = PREFIX;
+                simul_node = node_mul(copy_tree(func_node), simular_difference(tree->left));
+                node_dump_tex(tree, simul_node);
+                new_node = node_mul(func_node, difference(tree->left));
+                break;
+            }
+            if(tree->data == 'c')
+            {
+                func_node = node_constructor();
+                func_node->data  = -1;
+                func_node->type  = NUMBER;
+                func_node->pos   = INFIX;
+                func_node->prior = P_NUM;
+                func_node = node_mul(func_node, copy_tree(tree));
+                func_node->right->data = 's';
+                func_node->right->pos   = PREFIX;
+
+                simul_node = node_mul(copy_tree(func_node), simular_difference(tree->left));
+                node_dump_tex(tree, simul_node);
                 new_node = node_mul(func_node, difference(tree->left));
                 break;
             }
             new_node = node_mul(copy_tree(tree->left), difference(tree->left));
             break;
         case P_MULT:
-            new_node = node_sum(node_mul(copy_tree(tree->left), difference(tree->right)),\
-                                node_mul(difference(tree->left), copy_tree(tree->right)));
+            if(tree->data == '*')
+            {
+                simul_node = node_sum(node_mul(copy_tree(tree->left), simular_difference(tree->right)), \
+                                    node_mul(simular_difference(tree->left), copy_tree(tree->right)));
+                node_dump_tex(tree, simul_node);
+                new_node = node_sum(node_mul(copy_tree(tree->left), difference(tree->right)), \
+                                    node_mul(difference(tree->left), copy_tree(tree->right)));
+            }
+            if(tree->data == '/')
+            {
+                simul_node = node_del(node_min(node_mul(simular_difference(tree->left), copy_tree(tree->right)),
+                                node_mul(copy_tree(tree->left), simular_difference(tree->right))),
+                        node_mul(copy_tree(tree->right), copy_tree(tree->right)));
+                node_dump_tex(tree, simul_node);
+                new_node = node_del(node_min(node_mul(difference(tree->left), copy_tree(tree->right)),
+                                node_mul(copy_tree(tree->left), difference(tree->right))),
+                        node_mul(copy_tree(tree->right), copy_tree(tree->right)));
+            }
             break;
         case P_SUM:
-            new_node = node_sum(difference(tree->left), difference(tree->right));
+            if(tree->data == '+')
+            {
+                simul_node = node_sum(simular_difference(tree->left), simular_difference(tree->right));
+                node_dump_tex(tree, simul_node);
+                new_node = node_sum(difference(tree->left), difference(tree->right));
+            }
+            if(tree->data == '-')
+            {
+                simul_node = node_min(simular_difference(tree->left), simular_difference(tree->right));
+                node_dump_tex(tree, simul_node);
+                new_node = node_min(difference(tree->left), difference(tree->right));
+            }
             break;
         default:
             perror("Plack Plak");
     }
+    if(simul_node)
+        node_destructor(simul_node);
+
     return new_node;
 }
 
@@ -328,4 +505,234 @@ node* node_sum(node* left, node* right)
     new_node->right = right;
 
     return new_node;
+}
+
+node* node_min(node* left, node* right)
+{
+    node* new_node = node_constructor();
+    assert(node_ok(new_node));
+
+    new_node->type  = OPERATOR;
+    new_node->data  = '-';
+    new_node->prior = P_SUM;
+    new_node->pos   = INFIX;
+    new_node->left  = left;
+    new_node->right = right;
+
+    return new_node;
+}
+
+node* node_del(node *left, node *right)
+{
+    node* new_node = node_constructor();
+    assert(node_ok(new_node));
+
+    new_node->type  = OPERATOR;
+    new_node->data  = '/';
+    new_node->prior = P_MULT;
+    new_node->pos   = INFIX;
+    new_node->left  = left;
+    new_node->right = right;
+
+    return new_node;
+}
+
+node *simular_difference(node *tree)
+{
+    node_ok(tree);
+    node* simul_node = copy_tree(tree);
+    simul_node->is_simular = true;
+    return simul_node;
+}
+
+
+
+char* dump_phrases(int node_data)
+{
+    const int PHRASES_QUANTITY = 7;
+    char const* phrases[] = {"Найдём производную ",
+                            "Ищем производную ",
+                            "Поиск производной ",
+                            "Очевидно, это производная ",
+                            "Да познаешь ты путь нахождения производной ",
+                            "Wolfram знает, как искать производную ",
+                            "Сам попробуй в 2 часа ночи найти производную "};
+    char* message = (char*) calloc(1000, sizeof(*message));
+    message = strcpy(message, phrases[rand()%PHRASES_QUANTITY]);
+    switch(node_data)
+    {
+        case '+':
+            message = strcat(message, "суммы");
+            break;
+        case '-':
+            message = strcat(message, "разности");
+            break;
+        case '*':
+            message = strcat(message, "произведения");
+            break;
+        case '/':
+            message = strcat(message, "частного");
+            break;
+        case 's':
+            message = strcat(message, "синуса");
+            break;
+        case 'с':
+            message = strcat(message, "косинуса");
+            break;
+        default:
+            message = strcpy(message, "Да пребудет с вами матан");
+    }
+    return message;
+}
+
+void simplification(node **tree)
+{
+    node_ok(*tree);
+    if((*tree)->left != NULL)
+    {
+        simplification(&(*tree)->left);
+    }
+    if((*tree)->right != NULL)
+    {
+        simplification(&(*tree)->right);
+    }
+    node* func_node = NULL;
+    switch((*tree)->prior)
+    {
+        case P_SUM:
+            if(((*tree)->left->type == NUMBER)&&((*tree)->left->data == 0))
+            {
+                if((*tree)->data == '+')
+                {
+                    func_node = copy_tree((*tree)->right);
+                    node_dump_simplification((*tree), func_node);
+                    fprintf(TEXT_LATEXT, "\\\\\n");
+                    node_destructor((*tree));
+                    *tree = func_node;
+                    break;
+                }
+            }
+            if(((*tree)->right->type == NUMBER)&&((*tree)->right->data == 0))
+            {
+                func_node = copy_tree((*tree)->left);
+                node_dump_simplification((*tree), func_node);
+                fprintf(TEXT_LATEXT, "\\\\\n");
+                node_destructor((*tree));
+                *tree = func_node;
+                break;
+            }
+            if(((*tree)->right->type == NUMBER)&&((*tree)->left->type == NUMBER))
+            {
+                func_node = copy_tree((*tree)->left);
+                if((*tree)->data == '+')
+                    func_node->data += (*tree)->right->data;
+                else
+                    func_node->data -= (*tree)->right->data;
+                node_dump_simplification((*tree), func_node);
+                fprintf(TEXT_LATEXT, "\\\\\n");
+                node_destructor((*tree));
+                *tree = func_node;
+                break;
+            }
+            break;
+        case P_MULT:
+            if(((*tree)->left->type == NUMBER)&&((*tree)->left->data == 0))
+            {
+                func_node = copy_tree((*tree)->left);
+                node_dump_simplification((*tree), func_node);
+                fprintf(TEXT_LATEXT, "\\\\\n");
+                node_destructor((*tree));
+                *tree = func_node;
+                break;
+            }
+            if(((*tree)->right->type == NUMBER)&&((*tree)->right->data == 0))
+            {
+                if((*tree)->data == '*')
+                {
+                    func_node = copy_tree((*tree)->right);
+                    node_dump_simplification((*tree), func_node);
+                    fprintf(TEXT_LATEXT, "\\\\\n");
+                    node_destructor((*tree));
+                    *tree = func_node;
+                    break;
+                }
+            }
+            if(((*tree)->right->type == NUMBER)&&((*tree)->right->data == 1))
+            {
+                func_node = copy_tree((*tree)->left);
+                node_dump_simplification((*tree), func_node);
+                fprintf(TEXT_LATEXT, "\\\\\n");
+                node_destructor((*tree));
+                *tree = func_node;
+                break;
+            }
+            if(((*tree)->left->type == NUMBER)&&((*tree)->left->data == 1))
+            {
+                if((*tree)->data == '*')
+                {
+                    func_node = copy_tree((*tree)->right);
+                    node_dump_simplification((*tree), func_node);
+                    fprintf(TEXT_LATEXT, "\\\\\n");
+                    node_destructor((*tree));
+                    *tree = func_node;
+                    break;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+void node_dump_simplification(node *old_node, node *new_node)
+{
+    char* phrases = dump_phrases_simplification(old_node->data);
+    fprintf(TEXT_LATEXT ,"%s:\\\\\n", phrases);
+    free(phrases);
+    fprintf(TEXT_LATEXT, "$");
+    node_dump_formul(old_node);
+    fprintf(TEXT_LATEXT, "$");
+    fprintf(TEXT_LATEXT, " -> ");
+    fprintf(TEXT_LATEXT, "$");
+    node_dump_formul(new_node);
+    fprintf(TEXT_LATEXT, "$");
+    fprintf(TEXT_LATEXT ,"\\\\\n");
+}
+
+char *dump_phrases_simplification(int node_data)
+{
+    const int PHRASES_QUANTITY = 7;
+    char const* phrases[] = {"Упростим выражение ",
+            "Оптимизация ",
+            "Выполняем операцию оптимизации для ",
+            "Простыми преобразованиями находим оптимизацию ",
+            "Отправь смс на номер 322223, и ты узнаешь, как преобразовать ",
+            "Здесь могла бы быть ваша реклама другой ",
+            "Никто не дочитает до этого места преобразования "};
+    char* message = (char*) calloc(1000, sizeof(*message));
+    message = strcpy(message, phrases[rand()%PHRASES_QUANTITY]);
+    switch(node_data)
+    {
+        case '+':
+            message = strcat(message, "суммы");
+            break;
+        case '-':
+            message = strcat(message, "разности");
+            break;
+        case '*':
+            message = strcat(message, "произведения");
+            break;
+        case '/':
+            message = strcat(message, "частного");
+            break;
+        case 's':
+            message = strcat(message, "синуса");
+            break;
+        case 'с':
+            message = strcat(message, "косинуса");
+            break;
+        default:
+            message = strcpy(message, "Да пребудет с вами матан");
+    }
+    return message;
 }
