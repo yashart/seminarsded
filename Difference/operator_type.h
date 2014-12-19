@@ -7,6 +7,9 @@ enum node_type
     NUMBER,
     VARIABLE,
     OPERATOR,
+    SEPARATOR,
+    COMMAND,
+    PRINTF,
     SIMULATOR_DIFFERENCE
 };
 

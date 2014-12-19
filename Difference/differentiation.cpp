@@ -1,11 +1,10 @@
 #include "differentiation.h"
 
 lexem* str_pos;
-node* func_node;
-
 
 node* node_constructor()
 {
+    
     node* new_node = (node*) calloc(1, sizeof(*new_node));
     assert(node_ok(new_node));
     new_node->is_simular = false;
@@ -56,14 +55,153 @@ node *get_G0(lexem *str)
     free(str);
     */
     str_pos = str;
-    func_node = get_sum();
-    return func_node;
+    return get_separator();
+}
+
+node* get_separator()
+{
+    
+    node* left = get_while();
+    if((str_pos->type == SEPARATOR)&&(str_pos->value == ';'))
+    {
+        node* separator_node = NULL;
+        separator_node = node_constructor();
+        assert(node_ok(separator_node));
+        separator_node->right = NULL;
+        separator_node->type = SEPARATOR;
+        separator_node->data = str_pos->value;
+        separator_node->prior = P_SEPARATOR;
+        separator_node->pos  = INFIX;
+        str_pos++;
+        separator_node->left = left;
+        separator_node->right = get_separator();
+        assert(node_ok(separator_node));
+        return separator_node;
+    }
+    return left;
+}
+node* get_while()
+{
+    if((str_pos->type == COMMAND)&&(str_pos->value == 'w'))
+    {
+        node* while_node = NULL;
+        while_node = node_constructor();
+        assert(node_ok(while_node));
+        while_node->type  = COMMAND;
+        while_node->data  = str_pos->value;
+        while_node->prior = P_WHILE;
+        while_node->pos   = PREFIX;
+        str_pos++;
+        while_node->left  = get_compare();
+        while_node->right = get_while();
+        assert(node_ok(while_node));
+        return while_node;
+    }
+    return get_if();
+}
+
+node* get_if()
+{
+    
+    if((str_pos->type == COMMAND)&&(str_pos->value == 'i'))
+    {
+        node* if_node = NULL;
+        if_node = node_constructor();
+        assert(node_ok(if_node));
+        if_node->type  = COMMAND;
+        if_node->data  = str_pos->value;
+        if_node->prior = P_IF;
+        if_node->pos   = PREFIX;
+        str_pos++;
+        if_node->left  = get_compare();
+        if_node->right = get_if();
+        assert(node_ok(if_node));
+        return if_node;
+    }
+    return get_com_bracket();
+}
+node* get_com_bracket()
+{
+    
+    node* bracket = NULL;
+    if((str_pos->type == OPERATOR)&&(str_pos->value == '{'))
+    {
+        str_pos++;
+        bracket = get_separator();
+        if(str_pos->value == '}')
+        {
+            str_pos++;
+        }
+        return bracket;
+    }
+    bracket = get_command();
+    return bracket;
+}
+
+node* get_command()
+{
+    if(str_pos->type == PRINTF)
+    {
+        node* printf_node = NULL;
+        printf_node = node_constructor();
+        assert(node_ok(printf_node));
+        printf_node->type = PRINTF;
+        printf_node->data = str_pos->value;
+        printf_node->prior = P_PRINTF;
+        printf_node->pos  = PREFIX;
+        str_pos++;
+        assert(node_ok(printf_node));
+        return printf_node;
+    }
+    node* left = get_compare();
+    if((str_pos->type == OPERATOR)&&(str_pos->value == '='))
+    {
+        node* assign_node = NULL;
+        assign_node = node_constructor();
+        assert(node_ok(assign_node));
+        assign_node->type = OPERATOR;
+        assign_node->data = str_pos->value;
+        assign_node->prior = P_ASSIGN;
+        assign_node->pos  = INFIX;
+        assign_node->left = left;
+        str_pos++;
+        assign_node->right = get_compare();
+
+        assert(node_ok(assign_node));
+        return assign_node;
+    }
+    return left;
+}
+
+node* get_compare()
+{
+    
+    node* left = get_sum();
+    if((str_pos->type == OPERATOR)&&((str_pos->value == 'e')||(str_pos->value == '>')||(str_pos->value == '<')))
+    {
+        node* compare_node = NULL;
+        compare_node = node_constructor();
+        assert(node_ok(compare_node));
+
+        compare_node->type = OPERATOR;
+        compare_node->data = str_pos->value;
+        compare_node->prior = P_COMPARE;
+        compare_node->pos   = INFIX;
+        compare_node->left  = left;
+        str_pos++;
+        compare_node->right = get_compare();
+
+        assert(node_ok(compare_node));
+        return compare_node;
+    }
+    return left;
 }
 
 node* get_sum()
 {
+    
     node* left = get_mul();
-    if((str_pos->type == OPERATOR)&&(str_pos->value == '+')||(str_pos->value == '-'))
+    if((str_pos->type == OPERATOR)&&((str_pos->value == '+')||(str_pos->value == '-')))
     {
         node* sum_node = NULL;
         sum_node = node_constructor();
@@ -85,6 +223,7 @@ node* get_sum()
 
 node* get_mul()
 {
+    
     node* left = get_elementar_func();
     if((str_pos->type == OPERATOR)&&(str_pos->value == '*')||(str_pos->value == '/'))
     {
@@ -107,6 +246,7 @@ node* get_mul()
 
 node* get_elementar_func()
 {
+    
     if((str_pos->type == OPERATOR)&&((str_pos->value == 's')||(str_pos->value == 'c')))
     {
         node* elem_node = NULL;
@@ -127,11 +267,12 @@ node* get_elementar_func()
 
 node* get_bracket()
 {
+    
     node* bracket = NULL;
     if((str_pos->type == OPERATOR)&&(str_pos->value == '('))
     {
         str_pos++;
-        bracket = get_sum();
+        bracket = get_compare();
         str_pos++;
     }else
     {
@@ -142,6 +283,7 @@ node* get_bracket()
 
 node* get_data()
 {
+    
     if((str_pos->type == VARIABLE)||(str_pos->type == NUMBER)||(str_pos->type == END_LEXEM))
     {
         node *data_node = NULL;
@@ -152,6 +294,8 @@ node* get_data()
         data_node->data  = str_pos->value;
         data_node->prior = P_NUM;
         data_node->pos  = INFIX;
+        data_node->right = NULL;
+        data_node->left  = NULL;
         str_pos++;
 
         assert(node_ok(data_node));
@@ -735,4 +879,97 @@ char *dump_phrases_simplification(int node_data)
             message = strcpy(message, "Да пребудет с вами матан");
     }
     return message;
+}
+
+
+void node_dump_program(node *tree, int *label_num)
+{
+    int pos = *label_num;
+    if((tree->type == COMMAND)&&(tree->data == 'w'))
+    {
+        fprintf(PROGRAM_TEXT, "label %d\n", *label_num);
+        (*label_num)++;
+    }
+
+    if(tree->left != NULL)
+        node_dump_program(tree->left, label_num);
+    if((tree->type == COMMAND)&&(tree->data == 'i'))
+    {
+        fprintf(PROGRAM_TEXT, "push 0\njae :%d\n", *label_num);
+        (*label_num)++;
+    }
+
+    if((tree->type == COMMAND)&&(tree->data == 'w'))
+    {
+        fprintf(PROGRAM_TEXT, "push 0\njae :%d\n", *label_num);
+        (*label_num)++;
+    }
+    if(tree->right != NULL)
+        node_dump_program(tree->right, label_num);
+
+    switch (tree->prior)
+    {
+        case P_NUM:
+            if(tree->type == NUMBER)
+            {
+                fprintf(PROGRAM_TEXT, "push %d\n", tree->data);
+            }
+            if(tree->type == VARIABLE)
+            {
+                fprintf(PROGRAM_TEXT, "push_%cx\n", tree->data);
+            }
+            break;
+        case P_MULT:
+            if(tree->data == '*')
+                fprintf(PROGRAM_TEXT, "mul\n");
+            if(tree->data == '/')
+                fprintf(PROGRAM_TEXT, "del\n");
+            break;
+        case P_SINUS:
+            if(tree->data == 's')
+                fprintf(PROGRAM_TEXT, "sin\n");
+            if(tree->data == 'c')
+                fprintf(PROGRAM_TEXT, "cos\n");
+            break;
+        case P_SUM:
+            if(tree->data == '+')
+                fprintf(PROGRAM_TEXT, "add\n");
+            if(tree->data == '-')
+                fprintf(PROGRAM_TEXT, "sub\n");
+            break;
+        case P_ASSIGN:
+            fprintf(PROGRAM_TEXT, "pop_%cx\npop\n", tree->left->data);
+            break;
+        case P_PRINTF:
+            fprintf(PROGRAM_TEXT, "push_%cx\nout\n", tree->data);
+            break;
+        case P_COMPARE:
+            if(tree->data == '>')
+            {
+                fprintf(PROGRAM_TEXT, "sub\n");
+            }
+            if(tree->data == '<')
+            {
+                fprintf(PROGRAM_TEXT, "sub\npush -1\nmul\n");
+            }
+            if(tree->data == 'e')
+            {
+                fprintf(PROGRAM_TEXT, "sub");
+            }
+            break;
+        case P_IF:
+            if(tree->data == 'i')
+            {
+                fprintf(PROGRAM_TEXT, "label %d\n", pos);
+            }
+            break;
+        case P_WHILE:
+            if(tree->data == 'w')
+            {
+                fprintf(PROGRAM_TEXT, "jmp :%d\nlabel %d", pos, (pos+1));
+            }
+            break;
+        default:
+            break;
+    }
 }

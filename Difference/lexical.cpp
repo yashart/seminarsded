@@ -1,4 +1,5 @@
 #include "lexical.h"
+#include "differentiation.h"
 
 lexem *str_on_tokens(char *str)
 {
@@ -38,6 +39,49 @@ lexem *str_on_tokens(char *str)
             str_pos += 3;
             continue;
         }
+        if(strncmp(str_pos, "while", 5) == 0)
+        {
+            new_lexem[lexem_length - 1].type  = COMMAND;
+            new_lexem[lexem_length - 1].value = *str_pos;
+            str_pos += 5;
+            continue;
+        }
+        if(strncmp(str_pos, "int", 3) == 0)
+        {
+            lexem_length--;
+            str_pos += 3;
+            continue;
+        }
+        if(strncmp(str_pos, "if", 2) == 0)
+        {
+            new_lexem[lexem_length - 1].type  = COMMAND;
+            new_lexem[lexem_length - 1].value = *str_pos;
+            str_pos += 2;
+            continue;
+        }
+        if(strncmp(str_pos, "printf(\"%d\",", 12) == 0)
+        {
+            new_lexem[lexem_length - 1].type  = PRINTF;
+            str_pos += 12;
+            new_lexem[lexem_length - 1].value = *str_pos;
+            str_pos += 2;
+            continue;
+        }
+
+        if(strncmp(str_pos, "==", 2) == 0)
+        {
+            new_lexem[lexem_length - 1].type = OPERATOR;
+            new_lexem[lexem_length - 1].value = 'e';
+            str_pos += 2;
+            continue;
+        }
+        if((*str_pos == '=')||(*str_pos == '<')||(*str_pos == '>'))
+        {
+            new_lexem[lexem_length - 1].type  = OPERATOR;
+            new_lexem[lexem_length - 1].value = *str_pos;
+            str_pos++;
+            continue;
+        }
         if('a' <= *str_pos && *str_pos <= 'z')
         {
             new_lexem[lexem_length - 1].type  = VARIABLE;
@@ -45,16 +89,26 @@ lexem *str_on_tokens(char *str)
             str_pos++;
             continue;
         }
-        if(*str_pos == ' ')
+        if((*str_pos == ' ')||(*str_pos == '\n'))
         {
             lexem_length--;
             str_pos ++;
             continue;
         }
         if((*str_pos == '+')||(*str_pos == '-')||(*str_pos == '*')||(*str_pos == '/')
-                            ||(*str_pos == '(')||(*str_pos == ')'))
+                            ||(*str_pos == '(')||(*str_pos == ')')||(*str_pos == '{')||(*str_pos == '}'))
         {
+            if((*str_pos == '}')&&(new_lexem[lexem_length - 2].value == ';')
+                    &&(new_lexem[lexem_length - 2].type == SEPARATOR))
+                lexem_length--;
             new_lexem[lexem_length - 1].type  = OPERATOR;
+            new_lexem[lexem_length - 1].value = *str_pos;
+            str_pos++;
+            continue;
+        }
+        if(*str_pos == ';')
+        {
+            new_lexem[lexem_length - 1].type  = SEPARATOR;
             new_lexem[lexem_length - 1].value = *str_pos;
             str_pos++;
             continue;

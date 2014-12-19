@@ -1,0 +1,28 @@
+push_xx
+push_xx
+push 4
+sub
+push 300
+push_xx
+mul
+push 1
+push 1
+push 1
+push_xx
+push_xx
+mul
+push 5
+push_xx
+push_xx
+push 4
+add
+cos
+del
+mul
+add
+del
+add
+del
+add
+del
+mul

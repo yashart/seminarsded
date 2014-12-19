@@ -16,7 +16,13 @@ enum priority
     P_NUM,
     P_SUM,
     P_MULT,
-    P_SINUS
+    P_SINUS,
+    P_COMPARE,
+    P_ASSIGN,
+    P_PRINTF,
+    P_SEPARATOR,
+    P_IF,
+    P_WHILE
 };
 
 struct node
@@ -33,6 +39,7 @@ struct node
 
 extern lexem*    str_pos;
 extern FILE* TEXT_LATEXT;
+extern FILE* PROGRAM_TEXT;
 extern node* init_node;;
 
 bool node_ok(node* new_node);
@@ -42,13 +49,19 @@ void node_dump(node* new_node);
 void node_dump_formul(node *new_node);
 void node_dump_tex(node *old_node, node *new_node);
 void node_dump_simplification(node * old_node, node *new_node);
-
+void node_dump_program(node *tree, int *label_num);
 
 node* get_data();
 node* get_bracket();
 node* get_elementar_func();
 node* get_mul();
 node* get_sum();
+node* get_compare();
+node* get_com_bracket();
+node* get_command();
+node* get_if();
+node* get_while();
+node* get_separator();
 node* get_G0(lexem *str);
 
 node* copy_tree(node* tree);
