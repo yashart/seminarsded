@@ -1,4 +1,4 @@
-.model tiny
+.model tiny, C
 .code
 org 100h
 ;-------------------------------------------------------
@@ -14,8 +14,18 @@ print_num	macro	num
 		endm
 
 start:
-mov ax, 0FFFFh
+push 0FFFFh
 call print_dec
+pop cx
+push 0FFFFh
+call print_hex
+pop cx
+push 0FFFFh
+call print_oct
+pop cx
+push 0FFFFh
+call print_bin
+pop cx
 
 mov ah, 4ch
 int 20h
@@ -27,7 +37,8 @@ int 20h
 ;Exit: None
 ;Destr: AX, CX, DL, AH, BX
 ;--------------------------------------------------------
-print_bin	proc
+print_bin	proc number:word
+		mov ax, number
 		mov cx, 16
 		;for(int i=0, i<16; i++)
 		shift:		shl ax, 1
@@ -45,7 +56,8 @@ print_bin	proc
 ;Exit:	None
 ;Destr: AX, CX, DL, BX
 ;--------------------------------------------------------
-print_oct	proc
+print_oct	proc number:word
+		mov ax, number
 		mov cx, 5
 		;need move ax to 15 bit
 		mov dl, 0h
@@ -74,7 +86,8 @@ print_oct	proc
 ;Exit:	None
 ;Destr: AX, CX, DL, BX
 ;--------------------------------------------------------		
-print_hex	proc
+print_hex	proc number:word
+		mov ax, number
 		mov cx, 4
 		;for(int i=0, i<16; i++)
 		shift_hex:	mov bx, ax
@@ -97,7 +110,8 @@ print_hex	proc
 ;-------------------------------------------------
 ;Max number length is 65535. I will decrement hight digit in number,
 ;while number don't negative
-print_dec	proc		
+print_dec	proc number:word
+		mov ax, number	
 		xor cx, cx
 		mov bx, 10
 		div_on_10:	
@@ -109,8 +123,8 @@ print_dec	proc
 				je pop_end_nul_dx
 				jmp div_on_10
 		pop_end_nul_dx:
-				pop dx
-				dec cx
+		pop dx
+		dec cx
 		print_num_in_dec:
 				pop dx
 				xor dh, dh

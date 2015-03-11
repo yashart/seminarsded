@@ -1,4 +1,4 @@
-.model tiny
+.model tiny, C
 .code
 org 100h
 ;-----------------------------------
@@ -33,9 +33,16 @@ mov ch, 0h
 mov cl, [bx]
 inc bx
 mov si, bx
-call scan_dec
-call print_dec
 
+push cx
+push si
+call scan_hex
+pop cx
+pop cx
+
+push ax
+call print_dec
+pop cx
 
 mov ah, 4ch
 int 20h
@@ -48,7 +55,9 @@ HexTable db '0123456789ABCD'
 ;Exit: 	AX->number
 ;Destr: AX, DX, SI
 ;-----------------------------------
-scan_bin	proc
+scan_bin	proc string:word, str_len:word
+		mov cx, str_len
+		mov si, string
 		xor dx, dx
 		cld
 		scan_bin_str:	lodsb
@@ -65,7 +74,9 @@ scan_bin	proc
 ;Exit: 	AX->number
 ;Destr: AX, DX1, SI
 ;-----------------------------------
-scan_oct	proc
+scan_oct	proc string:word, str_len:word
+		mov cx, str_len
+		mov si, string
 		xor dx, dx
 		cld
 		scan_oct_str:	lodsb
@@ -83,7 +94,9 @@ scan_oct	proc
 ;Exit: 	AX->number
 ;Destr: AX, DX, SI, BX
 ;-----------------------------------
-scan_dec	proc
+scan_dec	proc string:word, str_len:word
+		mov cx, str_len
+		mov si, string
 		xor dx, dx
 		mov bx, 0Ah
 		cld
@@ -105,7 +118,9 @@ scan_dec	proc
 ;Exit: 	AX->number
 ;Destr: AX, DX, SI
 ;-----------------------------------
-scan_hex	proc
+scan_hex	proc string:word, str_len:word
+		mov cx, str_len
+		mov si, string
 		xor dx, dx
 		cld
 		scan_hex_str:	lodsb
@@ -132,7 +147,8 @@ scan_hex	proc
 ;-------------------------------------------------
 ;Max number length is 65535. I will decrement hight digit in number,
 ;while number don't negative
-print_dec	proc		
+print_dec	proc number:word
+		mov ax, number	
 		xor cx, cx
 		mov bx, 10
 		div_on_10:	
