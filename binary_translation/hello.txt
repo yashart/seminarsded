@@ -1,0 +1,15 @@
+MOV ecx 5
+print:
+PUSH ecx
+MOV eax 4
+MOV ebx 1
+MOV ecx str
+MOV edx 16
+INT 128
+POP ecx
+LOOP print
+end:
+MOV eax 1
+INT 128
+str:
+STR "Hello_world!__"
