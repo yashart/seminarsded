@@ -21,5 +21,6 @@ errors bin_buffer_add_str(binary_buffer *buffer, const char *str, int str_len);
 void   bin_buffer_dump              (binary_buffer *buffer, const char *file_name);
 
 char*  bin_buffer_scan              (const char *file_name, long* file_len);
+int* bin_buffer_scan_hex(const char *file_name, long *file_len);
 
 #endif //_BINARY_TRANSLATION_BINARY_FILE_H_

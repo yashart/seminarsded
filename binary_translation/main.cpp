@@ -1,9 +1,12 @@
+#include <stdlib.h>
 #include "map.h"
 #include "source_file.h"
 #include "assembler.h"
+#include "translator.h"
 
 int main()
 {
+    /*
     asm_command_table table;
     asm_command_table_constructor(&table);
     asm_command_table_add_all(&table, "comands_info.txt");
@@ -33,5 +36,13 @@ int main()
     map_header_destructor(&mp);
     //asm_command_table_dump(&table);
     asm_command_table_destructor(&table);
+    free(prog_txt);
+*/
+    translator_table tr_table;
+    translator_table_constructor(&tr_table);
+    parse_translator_rules("translator_rules.txt", &tr_table);
+    translator_table_dump(&tr_table);
+    translator_table_destructor(&tr_table);
+
     return 0;
 }

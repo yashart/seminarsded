@@ -53,7 +53,7 @@ errors search_labels(char *program_text, int program_len, map_header *mp, asm_co
             continue;
         }
 
-        if((str_to_reg_t(str_pointer) == NO)||(str_to_reg_t(str_pointer + strlen (str_pointer)) == NO))
+        if((str_to_reg_t(str_pointer) == NO)||(str_to_reg_t(str_pointer + strlen (str_pointer) + 1) == NO))
             label_value += 4;
 
         str_pointer += strlen(str_pointer) + 2 + strlen(str_pointer + strlen (str_pointer) + 1);

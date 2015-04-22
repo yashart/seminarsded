@@ -180,6 +180,17 @@ void asm_command_table_dump(asm_command_table* table)
         asm_command_dump(&table->command[i]);
 }
 
+errors asm_command_table_copy(asm_command_table* first_table, asm_command_table* second_table)
+{
+    first_table->quantity_elements = second_table->quantity_elements;
+    for(int i = 0 ; i < first_table->quantity_elements; i++)
+    {
+        asm_command_constructor(&first_table->command[i]);
+        asm_command_copy_constructor(&first_table->command[i], second_table->command[i]);
+    }
+    return OK;
+}
+
 errors asm_command_table_add(asm_command_table* table, asm_command command)
 {
     if(asm_command_table_ok(table))
@@ -346,12 +357,106 @@ int command_modrm(asm_command *command, char *program_txt)
     if(asm_command_ok(command))
         PLEASE_KILL_MY_VERY_BAD_FUNCTION(asm_command_ok(command));
 
+    long buf_len = 0;
+    int* modrm_table = bin_buffer_scan_hex("modrm.txt", &buf_len);
 
+    char* first_param   = NULL;
+    char* second_param  = NULL;
+
+    if(command->param1_t != NONE)
+        first_param  = program_txt + strlen(program_txt) + 1;
+    if(command->param2_t != NONE)
+        second_param = program_txt + strlen(program_txt) + 2 + strlen(program_txt + strlen(program_txt) + 1);
+
+    int first_param_in_table    = -1;
+    int second_param_in_table   = -1;
+    if(command->modrm == 'r') {
+        if (!strcmp(first_param, "eax"))
+            first_param_in_table = 0;
+        if (!strcmp(first_param, "ecx"))
+            first_param_in_table = 1;
+        if (!strcmp(first_param, "edx"))
+            first_param_in_table = 2;
+        if (!strcmp(first_param, "ebx"))
+            first_param_in_table = 3;
+        if (!strcmp(first_param, "esp"))
+            first_param_in_table = 4;
+        if (!strcmp(first_param, "ebp"))
+            first_param_in_table = 5;
+        if (!strcmp(first_param, "esi"))
+            first_param_in_table = 6;
+        if (!strcmp(first_param, "edi"))
+            first_param_in_table = 7;
+
+        if(!strcmp(second_param, "[eax]"))
+            second_param_in_table = 0;
+        if(!strcmp(second_param, "[ecx]"))
+            second_param_in_table = 1;
+        if(!strcmp(second_param, "[edx]"))
+            second_param_in_table = 2;
+        if(!strcmp(second_param, "[ebx]"))
+            second_param_in_table = 3;
+        if(!strcmp(second_param, "[esi]"))
+            second_param_in_table = 4;
+        if(!strcmp(second_param, "[edi]"))
+            second_param_in_table = 5;
+        if(!strcmp(second_param, "eax"))
+            second_param_in_table = 6;
+        if(!strcmp(second_param, "ecx"))
+            second_param_in_table = 7;
+        if(!strcmp(second_param, "edx"))
+            second_param_in_table = 8;
+        if(!strcmp(second_param, "ebx"))
+            second_param_in_table = 9;
+        if(!strcmp(second_param, "esp"))
+            second_param_in_table = 10;
+        if(!strcmp(second_param, "ebp"))
+            second_param_in_table = 11;
+        if(!strcmp(second_param, "esi"))
+            second_param_in_table = 12;
+        if(!strcmp(second_param, "edi"))
+            second_param_in_table = 13;
+    } else
+    {
+        first_param_in_table  = command->modrm - '0';
+        if(!strcmp(first_param, "[eax]"))
+            second_param_in_table = 0;
+        if(!strcmp(first_param, "[ecx]"))
+            second_param_in_table = 1;
+        if(!strcmp(first_param, "[edx]"))
+            second_param_in_table = 2;
+        if(!strcmp(first_param, "[ebx]"))
+            second_param_in_table = 3;
+        if(!strcmp(first_param, "[esi]"))
+            second_param_in_table = 4;
+        if(!strcmp(first_param, "[edi]"))
+            second_param_in_table = 5;
+        if(!strcmp(first_param, "eax"))
+            second_param_in_table = 6;
+        if(!strcmp(first_param, "ecx"))
+            second_param_in_table = 7;
+        if(!strcmp(first_param, "edx"))
+            second_param_in_table = 8;
+        if(!strcmp(first_param, "ebx"))
+            second_param_in_table = 9;
+        if(!strcmp(first_param, "esp"))
+            second_param_in_table = 10;
+        if(!strcmp(first_param, "ebp"))
+            second_param_in_table = 11;
+        if(!strcmp(first_param, "esi"))
+            second_param_in_table = 12;
+        if(!strcmp(first_param, "edi"))
+            second_param_in_table = 13;
+    }
+
+
+    int modrm_code = modrm_table[second_param_in_table * 8 + first_param_in_table];
+    free(modrm_table);
 
     if(asm_command_ok(command))
         PLEASE_KILL_MY_VERY_BAD_FUNCTION(asm_command_ok(command));
 
-    return 0xFF;
+    return modrm_code;
 }
 
 errors print_param_t(param_t param, binary_buffer *bin_buffer, char *program_text, map_header *mp, int *label_ptr)

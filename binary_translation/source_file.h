@@ -69,6 +69,7 @@ errors      asm_command_table_constructor (asm_command_table* table);
 errors      asm_command_table_destructor  (asm_command_table* table);
 void        asm_command_table_dump        (asm_command_table* table);
 
+errors      asm_command_table_copy        (asm_command_table* first_table, asm_command_table* second_table);
 errors      asm_command_table_add         (asm_command_table* table, asm_command command);
 errors      asm_command_table_add_all     (asm_command_table* table, const char *file_name);
 
@@ -79,7 +80,7 @@ param_t     str_to_type                   (char* str);
 int         reg_to_add_opcode             (reg_t reg);
 
 //TO-DO
-int         command_modrm                 (asm_command *command, char *program_txt);
+int         command_modrm(asm_command *command, char *program_txt);
 errors      print_param_t(param_t param, binary_buffer *bin_buffer, char *program_text, \
                                            map_header *mp, int *label_ptr);
 

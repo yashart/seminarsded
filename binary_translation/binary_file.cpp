@@ -99,7 +99,7 @@ void bin_buffer_dump(binary_buffer *buffer, const char* file_name)
     fclose(file);
 }
 
-char*  bin_buffer_scan(const char *file_name, long* file_len)
+char* bin_buffer_scan(const char *file_name, long* file_len)
 {
     FILE* file = fopen(file_name, "rb");
 
@@ -122,6 +122,27 @@ char*  bin_buffer_scan(const char *file_name, long* file_len)
 
     if(!buffer)
         PLEASE_KILL_MY_VERY_BAD_FUNCTION(BAD_MALLOC);
+
+    return buffer;
+}
+
+int* bin_buffer_scan_hex(const char *file_name, long *file_len)
+{
+    FILE* file = fopen(file_name, "r");
+    int* buffer = NULL;
+
+    int scan_value = 0;
+    long buffer_len = 0;
+    while(fscanf(file, "%x ", &scan_value) == 1)
+    {
+        buffer_len ++;
+        buffer = (int*) realloc(buffer, sizeof(*buffer) * buffer_len);
+        if(!buffer)
+            PLEASE_KILL_MY_VERY_BAD_FUNCTION(BAD_MALLOC);
+        buffer[buffer_len - 1] = scan_value;
+    }
+    *file_len = buffer_len;
+    fclose(file);
 
     return buffer;
 }

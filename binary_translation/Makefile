@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-c -Wall
 LDFLAGS=
-SOURCES=main.cpp errors.cpp binary_file.cpp map.cpp source_file.cpp assembler.cpp
+SOURCES=main.cpp errors.cpp binary_file.cpp map.cpp source_file.cpp assembler.cpp translator.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=bin_trans
 
