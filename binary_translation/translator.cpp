@@ -138,7 +138,6 @@ errors parse_translator_rules(const char* filename, translator_table* tr_table)
             continue;
 
         translator_table_add(tr_table);
-        translator_constructor(&tr_table->translator_rules[tr_table->quantity_elements - 1]);
         sscanf(rules_str, "%s %s %s", tr_table->translator_rules[tr_table->quantity_elements - 1].initial_command, \
                         param1, param2);
 
