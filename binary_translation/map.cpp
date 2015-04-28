@@ -44,7 +44,7 @@ errors map_destructor(map* mp)
 
 void map_dump(map* mp)
 {
-    printf("map [%s] = %d\n", mp->key, mp->value);
+    printf("map [%d] = %d\n", mp->key[0], mp->value);
 }
 
 //MAP HEADER
@@ -102,7 +102,7 @@ errors map_header_add_elem (map_header* mp_head, const char* key, int value)
     map_constructor(&mp_head->mp[mp_head->quantity_element]);
 
     mp_head->mp[mp_head->quantity_element].key   = strcpy(mp_head->mp[mp_head->quantity_element].key, key);
-    mp_head->mp[mp_head->quantity_element].key[strlen(mp_head->mp[mp_head->quantity_element].key) - 1] = '\0';
+    //mp_head->mp[mp_head->quantity_element].key[strlen(mp_head->mp[mp_head->quantity_element].key) - 1] = '\0';
     mp_head->mp[mp_head->quantity_element].value = value;
 
     mp_head->quantity_element++;

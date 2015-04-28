@@ -16,7 +16,7 @@ struct map
 errors map_OK           (map* mp);
 errors map_constructor  (map* mp);
 errors map_destructor   (map* mp);
-void map_dump           (map* mp);
+void   map_dump         (map* mp);
 
 struct map_header
 {

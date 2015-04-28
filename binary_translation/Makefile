@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall
+CFLAGS=-c -g3 -Wall
 LDFLAGS=
 SOURCES=main.cpp errors.cpp binary_file.cpp map.cpp source_file.cpp assembler.cpp translator.cpp
 OBJECTS=$(SOURCES:.cpp=.o)

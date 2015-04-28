@@ -172,7 +172,9 @@ errors generate_elf(binary_buffer *program_buf, binary_buffer *elf_buf)
     //ELF Header:
     bin_buffer_add_elem(elf_buf, 0x7F, 1);
     bin_buffer_add_str(elf_buf, "ELF", 3);
-    bin_buffer_add_elem(elf_buf, 0, 4);
+    bin_buffer_add_elem(elf_buf, 1, 1);
+    bin_buffer_add_elem(elf_buf, 0, 1);
+    bin_buffer_add_elem(elf_buf, 0, 2);
     bin_buffer_add_elem(elf_buf, 0, 4);
     bin_buffer_add_elem(elf_buf, 0, 4);
     bin_buffer_add_elem(elf_buf, 2, 2);
@@ -196,7 +198,7 @@ errors generate_elf(binary_buffer *program_buf, binary_buffer *elf_buf)
     long filesize = elf_buf->length + 4*4 + program_buf->length;
     bin_buffer_add_elem(elf_buf, filesize, 4);
     bin_buffer_add_elem(elf_buf, filesize, 4);
-    bin_buffer_add_elem(elf_buf, 5, 4);
+    bin_buffer_add_elem(elf_buf, 7, 4);
     bin_buffer_add_elem(elf_buf, 0, 4);
 
     bin_buffer_add_str(elf_buf, program_buf->buffer, program_buf->length);
@@ -205,5 +207,75 @@ errors generate_elf(binary_buffer *program_buf, binary_buffer *elf_buf)
         PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(program_buf));
     if(binary_buffer_OK(elf_buf))
         PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(elf_buf));
+    return OK;
+}
+
+errors add_asm_command_in_bin_buffer(asm_command *command, int *label_ptr, binary_buffer *program, int operand1,
+                                     int operand2)
+{
+    if(asm_command_ok(command))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(asm_command_ok(command));
+    if(binary_buffer_OK(program))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(program));
+
+    if(command->has_prefix)
+    {
+        bin_buffer_add_elem(program, command->op_prefix, 1);
+        *label_ptr += 1;
+    }
+    if(command->op_code != 0)
+    {
+        bin_buffer_add_elem(program, command->op_code, 1);
+        *label_ptr += 1;
+    }
+    if(command->has_modrm)
+    {
+        bin_buffer_add_elem(program, command->modrm, 1);
+        *label_ptr += 1;
+    }
+    print_operand_in_buffer(command->param1_t, operand1, program, label_ptr);
+    print_operand_in_buffer(command->param2_t, operand2, program, label_ptr);
+
+    if(asm_command_ok(command))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(asm_command_ok(command));
+    if(binary_buffer_OK(program))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(program));
+    return OK;
+}
+
+errors print_operand_in_buffer(param_t param, int operand, binary_buffer *program, int *label_ptr)
+{
+    if(binary_buffer_OK(program))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(program));
+
+    switch(param)
+    {
+        case DATA:
+            bin_buffer_add_elem(program, operand, 4);
+            *label_ptr += 4;
+            break;
+        case CHARDATA:
+            bin_buffer_add_elem(program, operand, 1);
+            *label_ptr += 1;
+            break;
+        case FAROFFSET:
+            bin_buffer_add_elem(program, operand, 4);
+            *label_ptr += 4;
+            break;
+        case FAR8OFFSET:
+            bin_buffer_add_elem(program, char(operand), 1);
+            *label_ptr += 1;
+            break;
+        case OFFSET:
+            bin_buffer_add_elem(program, operand, 4);
+            *label_ptr += 4;
+            break;
+        case STRING:
+        default:
+            break;
+    }
+
+    if(binary_buffer_OK(program))
+        PLEASE_KILL_MY_VERY_BAD_FUNCTION(binary_buffer_OK(program));
     return OK;
 }
